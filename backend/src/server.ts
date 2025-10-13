@@ -19,8 +19,7 @@ const {
 
 const isProduction = process.env.NODE_ENV === "production";
 
-console.log("DATABASE_URL:", DATABASE_URL);
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({ connectionString: DATABASE_URL });
 
 async function getFavorites(userId: string) {
   const res = await pool.query(
