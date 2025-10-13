@@ -90,7 +90,7 @@ const app = express();
 app.use(cookieParser());
 app.use(cors());
 app.use(express.json({ limit: "5mb" }));
-const PORT = process.env.PORT || 4001;
+const PORT = process.env.NODE_ENV === 'production' ? 8005 : 4001;
 
 app.use(express.json());
 
