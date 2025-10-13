@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  font-family: "JetBrains Mono", monospace;
+  background-color: black;
+  font-size: 16px;
+  color: var(--color-neutral-100);
+  overflow: hidden;
+}
+
+button {
+  cursor: pointer;
+}
+
+.pressed {
+  background-color: var(--color-neutral-700);
+}

@@ -1,0 +1,8 @@
+runtime: nodejs22
+service: herb-sunday
+
+automatic_scaling:
+  min_instances: 0
+  max_instances: 10
+
+entrypoint: node backend/dist/server.js
