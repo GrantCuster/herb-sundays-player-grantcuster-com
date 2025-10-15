@@ -39,7 +39,7 @@ export function Playlist() {
 
   return (
     <>
-      <div className="w-full flex pt-1 px-1 justify-between -mb-1 items-center border-r border-l border-neutral-700">
+      <div className="w-full flex justify-between items-center border-r border-l border-neutral-700">
         {/* left side */}
         {selectedPlaylist ? (
           <>
@@ -47,34 +47,34 @@ export function Playlist() {
               selectedPlaylist.id !== currentHerbSunday.id ? (
                 <div className="flex justify-between">
                   <button
-                    className="py-1 px-2 bg-neutral-800 hover:bg-neutral-700 text-sm text-left"
+                    className="py-1 flex items-baseline px-3 bg-neutral-800 hover:bg-neutral-700 text-sm text-left"
                     onClick={() =>
                       setSearchParams({
                         playlist: currentHerbSunday.formattedNumber,
                       })
                     }
                   >
-                    <ArrowLeftIcon size={12} className="inline mr-[1ch]" />
+                    <ArrowLeftIcon size={12} className="mr-[1ch]" />
                     Current playlist
                   </button>
                 </div>
               ) : (
-                <div className="px-2 py-1 text-sm">From</div>
+                <div className="px-3 py-1 text-sm">From</div>
               )
             ) : (
-              <div className="px-2 py-1 text-sm">Playlist</div>
+              <div className="px-3 py-1 text-sm">Playlist</div>
             )}
           </>
         ) : (
           currentHerbSunday && (
             <>
-              <div className="px-2 py-1 text-sm">From</div>
+              <div className="px-3 py-1 text-sm">From</div>
             </>
           )
         )}
         {/* Right side */}
         <button
-          className="px-2 py-1 text-sm bg-neutral-800 hover:bg-neutral-700"
+          className="px-3 py-1 flex items-baseline text-sm bg-neutral-800 hover:bg-neutral-700"
           onClick={() => {
             if (!playlists) return;
             const randomIndex = Math.floor(Math.random() * playlists.length);
@@ -85,7 +85,7 @@ export function Playlist() {
             });
           }}
         >
-          Random <ShuffleIcon size={12} className="inline ml-[1ch]" />
+          Random <ShuffleIcon size={12} className="ml-[1ch]" />
         </button>
       </div>
       {selectedPlaylist ? (
