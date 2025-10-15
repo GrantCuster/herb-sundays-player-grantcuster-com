@@ -63,7 +63,7 @@ export function CurrentPlaylist({
   }, [activePlaylist, playlistTracksMap]);
 
   return (
-    <div className="px-3 pt-3 overflow-hidden flex flex-col grow gap-2 border border-neutral-700">
+    <div className="px-3 pt-3 overflow-hidden flex flex-col grow gap-2 border-l border-r border-b border-neutral-700">
       <div className="flex gap-3">
         {activePlaylist?.images && activePlaylist.images[0] && (
           <img
@@ -81,9 +81,9 @@ export function CurrentPlaylist({
           </div>
         </div>
         <div className="w-[2lh] flex flex-col gap-[0.3lh]">
-          {isCurrent ? (
+          {isCurrent && nowPlaying?.is_playing ? (
             <button
-              className="w-[2lh] h-[2lh] focus:outline-none bg-neutral-800 hover:bg-neutral-700 flex justify-center items-center shrink-0"
+              className="w-[2lh] h-[2lh] rounded-full focus:outline-none bg-neutral-800 hover:bg-neutral-700 flex justify-center items-center shrink-0"
               onClick={() => {
                 // optimistically update UI
                 setNowPlaying((prev) =>
@@ -92,46 +92,50 @@ export function CurrentPlaylist({
                 fetch(`/api/spotify/pause`, { method: "PUT" });
               }}
             >
-              <PauseIcon
-                className={`${isFavorited ? "text-red-500" : ""}`}
-                fill={isFavorited ? "currentColor" : "none"}
-                size={16}
-              />
+              <PauseIcon size={16} />
             </button>
           ) : (
             <button
               className="w-[2lh] h-[2lh] rounded-full focus:outline-none bg-neutral-800 hover:bg-neutral-700 flex justify-center items-center shrink-0"
               onClick={async () => {
                 if (!playlists) return;
-                setPausePolling(true);
-                setSearchParams({ playlist: activePlaylist.formattedNumber });
-                setNowPlaying((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        context: { uri: activePlaylist.uri },
-                        item: {
-                          ...prev.item,
-                          name: "...",
-                          artists: [],
-                          album: { images: [] },
-                        },
-                        progress_ms: 0,
-                      }
-                    : prev,
-                );
-                await fetch("/api/spotify/play", {
-                  method: "PUT",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    context_uri: activePlaylist.uri,
-                  }),
-                });
-                setTimeout(() => {
-                  setPausePolling(false);
-                }, 2000);
+                if (isCurrent) {
+                  // optimistically update UI
+                  setNowPlaying((prev) =>
+                    prev ? { ...prev, is_playing: true } : prev,
+                  );
+                  fetch(`/api/spotify/play`, { method: "PUT" });
+                } else {
+                  setPausePolling(true);
+                  setSearchParams({ playlist: activePlaylist.formattedNumber });
+                  setNowPlaying((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          context: { uri: activePlaylist.uri },
+                          item: {
+                            ...prev.item,
+                            name: "...",
+                            artists: [],
+                            album: { images: [] },
+                          },
+                          progress_ms: 0,
+                        }
+                      : prev,
+                  );
+                  await fetch("/api/spotify/play", {
+                    method: "PUT",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      context_uri: activePlaylist.uri,
+                    }),
+                  });
+                  setTimeout(() => {
+                    setPausePolling(false);
+                  }, 2000);
+                }
               }}
             >
               <PlayIcon size={16} />
