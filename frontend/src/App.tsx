@@ -37,12 +37,12 @@ function App() {
 
   return loaded ? (
     <BrowserRouter>
-      <div className="w-full h-[100dvh] overflow-hidden flex flex-col">
+      <div className="w-full h-[100dvh] overflow-hidden flex flex-col px-3">
         {loggedIn ? (
           <LoggedIn />
         ) : (
           <a
-            className="flex items-center justify-center underline w-[512px] mx-auto my-4 h-full border border-neutral-400"
+            className="flex items-center justify-center underline max-w-[512px] w-full mx-auto my-4 h-full border border-neutral-400"
             href="/api/auth/spotify/login"
           >
             <div>Login with Spotify</div>

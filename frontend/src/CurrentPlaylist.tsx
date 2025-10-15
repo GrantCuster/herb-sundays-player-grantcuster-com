@@ -13,7 +13,7 @@ import type {
   SpotifyTrackType,
 } from "./Spotify/SpotifyTypes";
 import { useSearchParams } from "react-router-dom";
-import { HeartIcon, PlayIcon, ShuffleIcon } from "lucide-react";
+import { HeartIcon, PauseIcon, PlayIcon, ShuffleIcon } from "lucide-react";
 
 export function CurrentPlaylist({
   activePlaylist,
@@ -69,7 +69,7 @@ export function CurrentPlaylist({
           <img
             src={activePlaylist.images[0].url}
             alt={activePlaylist.name || "Playlist Cover"}
-            className="w-[2lh] h-[2lh] object-cover shrink-0"
+            className="w-[4.3lh] h-[4.3lh] object-cover shrink-0"
           />
         )}
         <div className="grow overflow-hidden">
@@ -77,34 +77,68 @@ export function CurrentPlaylist({
             <div className="text-neutral-400 truncate">
               {activePlaylist.formattedNumber}
             </div>
-            <div className="truncate">{activePlaylist.formattedName}</div>
+            <div className="">{activePlaylist.formattedName}</div>
           </div>
         </div>
-        <button
-          className="w-[2lh] h-[2lh] bg-neutral-800 hover:bg-neutral-700 flex justify-center items-center shrink-0"
-          onClick={() => {
-            if (!playlists) return;
-            const randomIndex = Math.floor(Math.random() * playlists.length);
-            const p = playlists[randomIndex];
-            setSearchParams((prev) => {
-              prev.set("playlist", p.formattedNumber);
-              return prev;
-            });
-          }}
-        >
-          <ShuffleIcon size={16} />
-        </button>
-      </div>
-      <div className="flex gap-3 py-1 w-full">
-        <div
-          className="text-neutral-400 text-xs grow line-clamp-4 h-[4lh] overflow-hidden"
-          dangerouslySetInnerHTML={{
-            __html: activePlaylist?.description || "",
-          }}
-        />
-        {isCurrent ? (
+        <div className="w-[2lh] flex flex-col gap-[0.3lh]">
+          {isCurrent ? (
+            <button
+              className="w-[2lh] h-[2lh] focus:outline-none bg-neutral-800 hover:bg-neutral-700 flex justify-center items-center shrink-0"
+              onClick={() => {
+                // optimistically update UI
+                setNowPlaying((prev) =>
+                  prev ? { ...prev, is_playing: false } : prev,
+                );
+                fetch(`/api/spotify/pause`, { method: "PUT" });
+              }}
+            >
+              <PauseIcon
+                className={`${isFavorited ? "text-red-500" : ""}`}
+                fill={isFavorited ? "currentColor" : "none"}
+                size={16}
+              />
+            </button>
+          ) : (
+            <button
+              className="w-[2lh] h-[2lh] rounded-full focus:outline-none bg-neutral-800 hover:bg-neutral-700 flex justify-center items-center shrink-0"
+              onClick={async () => {
+                if (!playlists) return;
+                setPausePolling(true);
+                setSearchParams({ playlist: activePlaylist.formattedNumber });
+                setNowPlaying((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        context: { uri: activePlaylist.uri },
+                        item: {
+                          ...prev.item,
+                          name: "...",
+                          artists: [],
+                          album: { images: [] },
+                        },
+                        progress_ms: 0,
+                      }
+                    : prev,
+                );
+                await fetch("/api/spotify/play", {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    context_uri: activePlaylist.uri,
+                  }),
+                });
+                setTimeout(() => {
+                  setPausePolling(false);
+                }, 2000);
+              }}
+            >
+              <PlayIcon size={16} />
+            </button>
+          )}
           <button
-            className="w-[2lh] h-[2lh] focus:outline-none bg-neutral-800 hover:bg-neutral-700 flex justify-center items-center shrink-0"
+            className="w-[2lh] h-[2lh] rounded-full focus:outline-none bg-neutral-800 hover:bg-neutral-700 flex justify-center items-center shrink-0"
             onClick={() => {
               setFavorites((prev) => {
                 const newFavorites = isFavorited
@@ -129,45 +163,15 @@ export function CurrentPlaylist({
               size={16}
             />
           </button>
-        ) : (
-          <button
-            className="w-[2lh] h-[2lh] rounded-full focus:outline-none bg-neutral-800 hover:bg-neutral-700 flex justify-center items-center shrink-0"
-            onClick={async () => {
-              if (!playlists) return;
-              setPausePolling(true);
-              setSearchParams({ playlist: activePlaylist.formattedNumber });
-              setNowPlaying((prev) =>
-                prev
-                  ? {
-                      ...prev,
-                      context: { uri: activePlaylist.uri },
-                      item: {
-                        ...prev.item,
-                        name: "...",
-                        artists: [],
-                        album: { images: [] },
-                      },
-                      progress_ms: 0,
-                    }
-                  : prev,
-              );
-              await fetch("/api/spotify/play", {
-                method: "PUT",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  context_uri: activePlaylist.uri,
-                }),
-              });
-              setTimeout(() => {
-                setPausePolling(false);
-              }, 2000);
-            }}
-          >
-            <PlayIcon size={16} />
-          </button>
-        )}
+        </div>
+      </div>
+      <div className="flex gap-3 py-1 w-full">
+        <div
+          className="text-neutral-400 text-xs grow line-clamp-4 h-[4lh] overflow-hidden"
+          dangerouslySetInnerHTML={{
+            __html: activePlaylist?.description || "",
+          }}
+        />
       </div>
       <div className="overflow-y-auto text-sm border-t border-neutral-700 grow -mx-3 px-3 py-2">
         {playlistTracksMap[activePlaylist?.id || ""] === "loading" ? (
