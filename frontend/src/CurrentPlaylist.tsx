@@ -14,6 +14,7 @@ import type {
 } from "./Spotify/SpotifyTypes";
 import { useSearchParams } from "react-router-dom";
 import { HeartIcon, PauseIcon, PlayIcon, ShuffleIcon } from "lucide-react";
+import { fetchWithRefresh } from "./fetchWithRefresh";
 
 export function CurrentPlaylist({
   activePlaylist,
@@ -35,7 +36,7 @@ export function CurrentPlaylist({
   const isFavorited = favorites.includes(activePlaylist.formattedNumber);
 
   async function fetchTracks(playlistId: string) {
-    const tracks = await fetch(
+    const tracks = await fetchWithRefresh(
       "/api/spotify/playlist/" + playlistId + "/tracks",
     );
     const _tracks = await tracks.json();
@@ -89,7 +90,7 @@ export function CurrentPlaylist({
                 setNowPlaying((prev) =>
                   prev ? { ...prev, is_playing: false } : prev,
                 );
-                fetch(`/api/spotify/pause`, { method: "PUT" });
+                fetchWithRefresh(`/api/spotify/pause`, { method: "PUT" });
               }}
             >
               <PauseIcon size={16} />
@@ -104,7 +105,7 @@ export function CurrentPlaylist({
                   setNowPlaying((prev) =>
                     prev ? { ...prev, is_playing: true } : prev,
                   );
-                  fetch(`/api/spotify/play`, { method: "PUT" });
+                  fetchWithRefresh(`/api/spotify/play`, { method: "PUT" });
                 } else {
                   setPausePolling(true);
                   setSearchParams({ playlist: activePlaylist.formattedNumber });
@@ -123,7 +124,7 @@ export function CurrentPlaylist({
                         }
                       : prev,
                   );
-                  await fetch("/api/spotify/play", {
+                  await fetchWithRefresh("/api/spotify/play", {
                     method: "PUT",
                     headers: {
                       "Content-Type": "application/json",
@@ -149,7 +150,7 @@ export function CurrentPlaylist({
                   ? prev.filter((f) => f !== activePlaylist.formattedNumber)
                   : [...prev, activePlaylist.formattedNumber];
                 // sync
-                fetch("/api/setFavorites", {
+                fetchWithRefresh("/api/setFavorites", {
                   headers: { "Content-Type": "application/json" },
                   method: "POST",
                   body: JSON.stringify({

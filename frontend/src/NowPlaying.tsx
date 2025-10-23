@@ -5,6 +5,7 @@ import {
 } from "./Spotify/SpotifyAtoms";
 import { FastForwardIcon, PauseIcon, PlayIcon } from "lucide-react";
 import { formatDuration } from "./Utils";
+import { fetchWithRefresh } from "./fetchWithRefresh";
 
 export function NowPlaying() {
   const [nowPlaying, setNowPlaying] = useAtom(SpotifyNowPlayingAtom);
@@ -28,7 +29,7 @@ export function NowPlaying() {
               setNowPlaying((prev) =>
                 prev ? { ...prev, is_playing: false } : prev,
               );
-              fetch(`/api/spotify/pause`, { method: "PUT" });
+              fetchWithRefresh(`/api/spotify/pause`, { method: "PUT" });
             }}
           >
             <PauseIcon size={16} />
@@ -41,7 +42,7 @@ export function NowPlaying() {
               setNowPlaying((prev) =>
                 prev ? { ...prev, is_playing: true } : prev,
               );
-              fetch(`/api/spotify/play`, { method: "PUT" });
+              fetchWithRefresh(`/api/spotify/play`, { method: "PUT" });
             }}
           >
             <PlayIcon size={16} />
@@ -87,7 +88,7 @@ export function NowPlaying() {
                   }
                 : prev,
             );
-            await fetch(`/api/spotify/next`, { method: "POST" });
+            await fetchWithRefresh(`/api/spotify/next`, { method: "POST" });
             setTimeout(() => {
               setBumpRefresh((v) => v + 1);
             }, 500);

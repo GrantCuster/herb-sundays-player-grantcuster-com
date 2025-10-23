@@ -63,7 +63,7 @@ function setAuthCookies(
   // Access token cookie (short lived)
   res.cookie("spotify_access_token", access_token, {
     httpOnly: true,
-    secure: false, // only for local dev
+    secure: isProduction,
     sameSite: "lax",
     maxAge: (expires_in - 30) * 1000, // small buffer
     path: "/",
@@ -73,7 +73,7 @@ function setAuthCookies(
   if (refresh_token) {
     res.cookie("spotify_refresh_token", refresh_token, {
       httpOnly: true,
-      secure: false, // only for local dev
+      secure: isProduction,
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 30, // ~30 days
       path: "/",
@@ -88,7 +88,14 @@ function genState() {
 
 const app = express();
 app.use(cookieParser());
-app.use(cors());
+app.use(
+  cors({
+    origin: isProduction
+      ? "https://herb-sunday-dot-computing-experiments.uc.r.appspot.com"
+      : "http://127.0.0.1:4000",
+    credentials: true,
+  }),
+);
 app.use(express.json({ limit: "5mb" }));
 const PORT = process.env.NODE_ENV === 'production' ? 8005 : 4001;
 
@@ -189,7 +196,7 @@ app.get("/api/auth/spotify/callback", async (req, res) => {
   }
 });
 
-app.post("/auth/spotify/refresh", async (req, res) => {
+app.post("/api/auth/spotify/refresh", async (req, res) => {
   const refresh_token = req.cookies.spotify_refresh_token;
   if (!refresh_token)
     return res.status(401).json({ error: "No refresh token" });
@@ -489,7 +496,7 @@ app.put("/api/spotify/transfer", async (req, res) => {
   res.status(r.status).send(text);
 });
 
-app.post("/auth/spotify/logout", (req, res) => {
+app.post("/api/auth/spotify/logout", (req, res) => {
   res.clearCookie("spotify_access_token", {
     path: "/",
   });

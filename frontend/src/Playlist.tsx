@@ -39,25 +39,23 @@ export function Playlist() {
 
   return (
     <>
-      <div className="w-full flex justify-between items-center border-r border-l border-neutral-700">
+      <div className="w-full flex items-center border-r border-l border-neutral-700 justify-between">
         {/* left side */}
         {selectedPlaylist ? (
           <>
             {currentHerbSunday ? (
               selectedPlaylist.id !== currentHerbSunday.id ? (
-                <div className="flex justify-between">
-                  <button
-                    className="py-1 flex items-baseline px-3 bg-neutral-800 hover:bg-neutral-700 text-sm text-left"
-                    onClick={() =>
-                      setSearchParams({
-                        playlist: currentHerbSunday.formattedNumber,
-                      })
-                    }
-                  >
-                    <ArrowLeftIcon size={12} className="mr-[1ch]" />
-                    Current playlist
-                  </button>
-                </div>
+                <button
+                  className="py-2 flex items-baseline px-3 bg-neutral-800 hover:bg-neutral-700 text-sm text-left"
+                  onClick={() =>
+                    setSearchParams({
+                      playlist: currentHerbSunday.formattedNumber,
+                    })
+                  }
+                >
+                  <ArrowLeftIcon size={12} className="mr-[1ch]" />
+                  Current playlist
+                </button>
               ) : (
                 <div className="px-3 py-1 text-sm">From</div>
               )
@@ -74,7 +72,7 @@ export function Playlist() {
         )}
         {/* Right side */}
         <button
-          className="px-3 py-1 flex items-baseline text-sm bg-neutral-800 hover:bg-neutral-700"
+          className="px-3 py-2 flex items-baseline text-sm bg-neutral-800 hover:bg-neutral-700 justify-end"
           onClick={() => {
             if (!playlists) return;
             const randomIndex = Math.floor(Math.random() * playlists.length);

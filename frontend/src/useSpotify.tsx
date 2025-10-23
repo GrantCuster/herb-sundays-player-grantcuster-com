@@ -12,9 +12,10 @@ import {
 } from "./Spotify/SpotifyAtoms";
 import { useEffect } from "react";
 import type { SpotifyPlaylistType } from "./Spotify/SpotifyTypes";
+import { fetchWithRefresh } from "./fetchWithRefresh";
 
 export async function transferToDevice(device_id: string, play = true) {
-  const res = await fetch("/api/spotify/transfer", {
+  const res = await fetchWithRefresh("/api/spotify/transfer", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ device_id, play }),
@@ -42,7 +43,7 @@ export function useSpotify() {
   async function fetchDevices() {
     try {
       // setError(null);
-      const res = await fetch("/api/spotify/devices");
+      const res = await fetchWithRefresh("/api/spotify/devices");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setDevices(data.devices ?? []);
@@ -56,7 +57,7 @@ export function useSpotify() {
 
   async function fetchNowPlaying() {
     try {
-      const res = await fetch("/api/spotify/me/player/currently-playing");
+      const res = await fetchWithRefresh("/api/spotify/me/player/currently-playing");
       if (res.status === 204) {
         // 204 means nothing is playing
         setNowPlaying((prev) => {
@@ -77,7 +78,7 @@ export function useSpotify() {
 
   async function fetchFavorites() {
     try {
-      const res = await fetch("/api/getFavorites?userId=" + userId);
+      const res = await fetchWithRefresh("/api/getFavorites?userId=" + userId);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setFavorites(data.items ?? []);
@@ -105,7 +106,7 @@ export function useSpotify() {
       return [number, title];
     }
 
-    const playlists = await fetch("/api/spotify/herb_sundays");
+    const playlists = await fetchWithRefresh("/api/spotify/herb_sundays");
     const _data = await playlists.json();
     const filtered = _data
       .filter(
