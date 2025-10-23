@@ -193,7 +193,37 @@ export function CurrentPlaylist({
                   t.track && (
                     <div
                       key={t.track.id}
-                      className={`${nowPlaying?.item?.id === t.track.id ? "text-white" : "text-neutral-400 "}`}
+                      className={`cursor-pointer hover:text-white ${nowPlaying?.item?.id === t.track.id ? "text-white" : "text-neutral-400 "}`}
+                      onClick={async () => {
+                        setPausePolling(true);
+                        setSearchParams({ playlist: activePlaylist.formattedNumber });
+                        setNowPlaying((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                context: { uri: activePlaylist.uri },
+                                item: {
+                                  ...t.track,
+                                },
+                                progress_ms: 0,
+                                is_playing: true,
+                              }
+                            : prev,
+                        );
+                        await fetchWithRefresh("/api/spotify/play", {
+                          method: "PUT",
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({
+                            context_uri: activePlaylist.uri,
+                            offset: { position: i },
+                          }),
+                        });
+                        setTimeout(() => {
+                          setPausePolling(false);
+                        }, 2000);
+                      }}
                     >
                       {i + 1}. {t.track.name} -{" "}
                       {t.track.artists.map((a: any) => a.name).join(", ")}
