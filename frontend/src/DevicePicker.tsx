@@ -31,7 +31,7 @@ export function DevicePicker() {
     );
   } else if (devices.length === 2) {
     return (
-      <div className="flex border-t border-neutral-700 gap-[1ch] items-center w-full px-[1ch] py-[0.25lh]">
+      <div className="flex border-t border-neutral-700 gap-[1ch] items-center w-full px-[1ch] pt-[0.25lh] pb-[1lh]">
         <div className="text-neutral-400">Connected to</div>
         <select
           className="bg-neutral-800 hover:bg-neutral-700 px-[1ch] grow py-[0.25lh] focus:outline-none text-white rounded-lg"
