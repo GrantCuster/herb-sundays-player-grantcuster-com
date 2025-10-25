@@ -8,12 +8,12 @@ export function Header() {
   const viewMode = searchParams.get("view") ?? "player";
 
   return (
-    <div className="w-full text-sm flex justify-between text-neutral-400">
-      <div className="flex px-1">
+    <div className="bg-black flex justify-between px-[0.5ch] border-b border-neutral-700">
+      <div className="flex gap-[1ch]">
         {viewModeOptions.map((value, index) => (
           <button
             key={index}
-            className={`py-2 px-3 ${viewMode === value ? "text-white" : ""}`}
+            className={`py-[0.125lh] px-[0.5ch] ${viewMode === value ? "text-white" : "text-neutral-400"}`}
             onClick={() => {
               setSearchParams((prev) => {
                 if (value === "player") {
@@ -29,16 +29,14 @@ export function Header() {
           </button>
         ))}
       </div>
-      <div className="py-2 px-3">
-        <a
-          href="https://herbsundays.substack.com/"
-          target="_blank"
-          rel="noreferrer"
-          className="underline text-white"
-        >
-          Herb Sundays
-        </a>
-      </div>
+      <a
+        className={`py-[0.125lh] px-[0.5ch] text-neutral-200 underline text-white`}
+        href="https://herbsundays.substack.com/"
+        target="_blank"
+        rel="noreferrer"
+      >
+        Herb Sundays →
+      </a>
     </div>
   );
 }

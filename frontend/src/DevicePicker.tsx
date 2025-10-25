@@ -16,25 +16,25 @@ export function DevicePicker() {
   const [, setPausePolling] = useAtom(SpotifyPausePollingAtom);
 
   if (devicesLoading) {
-    return <div className="w-full px-3">Loading...</div>;
+    return <div className="w-full border-t border-neutral-700 px-[1ch] py-[0.5lh] text-neutral-400">Loading...</div>;
   } else if (devices.length === 0) {
     return (
-      <div className="w-full px-3 text-sm text-neutral-400 py-1">
-        No Spotify devices found. Please open Spotify on one of your devices.
+      <div className="w-full border-t border-neutral-700 px-[1ch] py-[0.5lh] text-red-400">
+        Not connected. Please open Spotify on one of your devices.
       </div>
     );
   } else if (devices.length === 1) {
     return (
-      <div className="text-neutral-400 text-sm px-3 py-1">
+      <div className="text-neutral-400 border border-neutral-700 py-[0.5lh] w-full px-[1ch]">
         Connected to {activeDevice?.name}
       </div>
     );
   } else if (devices.length === 2) {
     return (
-      <div className="flex gap-2 items-center w-full px-3">
+      <div className="flex border-t border-neutral-700 gap-[1ch] items-center w-full px-[1ch] py-[0.25lh]">
         <div className="text-neutral-400">Connected to</div>
         <select
-          className="bg-neutral-900 hover:bg-neutral-800 px-2 grow py-1 text-sm focus:outline-none text-white"
+          className="bg-neutral-800 hover:bg-neutral-700 px-[1ch] grow py-[0.25lh] focus:outline-none text-white rounded-lg"
           value={activeDevice?.id ?? ""}
           onChange={(e) => {
             const d = devices.find((d) => d.id === e.target.value);

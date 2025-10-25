@@ -39,7 +39,7 @@ export function Playlist() {
 
   return (
     <>
-      <div className="w-full flex items-center border-r border-l border-neutral-700 justify-between">
+      <div className="w-full hidden flex items-center border-r border-l border-neutral-700 justify-between">
         {/* left side */}
         {selectedPlaylist ? (
           <>
@@ -90,12 +90,14 @@ export function Playlist() {
         <CurrentPlaylist
           activePlaylist={selectedPlaylist}
           isCurrent={selectedPlaylist.id === currentHerbSunday?.id}
+          currentPlaylist={currentHerbSunday || null}
         />
       ) : (
         currentHerbSunday && (
           <CurrentPlaylist
             activePlaylist={currentHerbSunday}
             isCurrent={true}
+            currentPlaylist={currentHerbSunday}
           />
         )
       )}

@@ -3,7 +3,6 @@ import {
   SpotifyFavoritesAtom,
   SpotifyPlaylistsAtom,
 } from "./Spotify/SpotifyAtoms";
-import { HeartIcon } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
 export function Favs() {
@@ -14,32 +13,44 @@ export function Favs() {
     playlists?.filter((p) => favorites.includes(p.formattedNumber)) || [];
 
   return (
-    <div className="px-3 py-2 overflow-hidden flex flex-col grow gap-2 border border-neutral-700">
+    <div className="overflow-hidden flex flex-col grow">
       <div className="overflow-y-auto grow">
         {favs?.map((playlist) => (
           <div
             key={playlist.id}
-            className="text-neutral-400 flex gap-3 text-sm items-start border-b border-neutral-700 py-1"
+            className="flex py-[0.25lh] w-full border-b border-neutral-800"
+            onClick={() => {
+              setSearchParams((prev) => {
+                prev.delete("view");
+                prev.set("playlist", playlist.formattedNumber);
+                return prev;
+              });
+            }}
           >
-            <div className="w-[5ch] shrink-0">{playlist.formattedNumber}</div>
-            <button
-              className="text-left"
-              onClick={() => {
-                setSearchParams((prev) => {
-                  prev.delete("view");
-                  prev.set("playlist", playlist.formattedNumber);
-                  return prev;
-                });
-              }}
-            >
-              <div className="text-white text-left">
-                {playlist.formattedName}
+            <div className="flex w-full">
+              <div className="grow">
+                <div className="flex">
+                  <div className="w-[5ch] px-[1ch] shrink-0 text-right">
+                    {playlist.formattedNumber}
+                  </div>
+                  <div className="px-[1ch]">{playlist.formattedName}</div>
+                </div>
+
+                <div className="px-[1ch]">
+                  <div
+                    className="text-neutral-400 text-sm"
+                    dangerouslySetInnerHTML={{
+                      __html: playlist.description || "",
+                    }}
+                  ></div>
+                </div>
               </div>
-              <div
-                className="text-xs mt-0.5"
-                dangerouslySetInnerHTML={{ __html: playlist.description || "" }}
-              ></div>
-            </button>
+              <img
+                className="h-[2.75lh] w-[2.75lh] mr-[1ch] object-cover"
+                src={playlist.images[0].url}
+                alt=""
+              />
+            </div>
           </div>
         ))}
       </div>

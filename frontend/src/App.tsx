@@ -38,11 +38,11 @@ function App() {
 
   return loaded ? (
     <BrowserRouter>
-      <div className="w-full h-[100dvh] overflow-hidden flex flex-col px-3">
+      <div className="w-full h-[100dvh] overflow-hidden flex flex-col">
         {loggedIn ? (
           <LoggedIn />
         ) : (
-          <div className="max-w-md w-full mx-auto h-full flex flex-col justify-center items-center text-left text-neutral-400 ">
+          <div className="w-full mx-auto h-full flex flex-col justify-center items-center text-left text-neutral-400 ">
             <div className="pt-4">
               A simple Spotify player for listening to playlists from{" "}
               <a
@@ -54,7 +54,7 @@ function App() {
               </a>
             </div>
             <a
-              className="flex items-center justify-center underline max-w-[512px] w-full mx-auto my-5 py-4 rounded-full border border-neutral-400"
+              className="flex items-center justify-center underline w-full mx-auto my-5 py-4 rounded-full border border-neutral-400"
               href="/api/auth/spotify/login"
             >
               <div>Login with Spotify</div>
@@ -72,19 +72,11 @@ function LoggedIn() {
   const viewMode = searchParams.get("view") ?? "player";
 
   return (
-    <div className="max-w-md h-full w-full mx-auto flex flex-col overflow-hidden">
+    <div className="h-full w-full mx-auto flex flex-col overflow-hidden">
       <Header />
-      {viewMode === "player" && (
-        <>
-          <div className="border border-neutral-700 py-2 gap-2 flex flex-col">
-            <NowPlaying />
-            <DevicePicker />
-          </div>
-          <Playlist />
-          <div className="h-[1lh] w-full"></div>
-        </>
-      )}
+      {viewMode === "player" && <Playlist />}
       {viewMode === "favs" && <Favs />}
+      <DevicePicker />
     </div>
   );
 }
