@@ -38,7 +38,7 @@ export function Favs() {
 
                 <div className="px-[1ch]">
                   <div
-                    className="text-neutral-400 text-sm"
+                    className="text-neutral-400 text-sm indent-[5.55ch]"
                     dangerouslySetInnerHTML={{
                       __html: playlist.description || "",
                     }}

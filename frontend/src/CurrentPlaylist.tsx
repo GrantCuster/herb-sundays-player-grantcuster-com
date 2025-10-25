@@ -75,7 +75,7 @@ export function CurrentPlaylist({
         />
         <div className="grow h-[240px] flex flex-col md:flex-row gap-[2px] px-[1ch]">
           <div
-            className="h-1/3 md:h-full w-full bg-neutral-800 rounded-lg flex justify-center items-center"
+            className="h-1/3 md:h-full w-full border border-neutral-700 rounded-lg flex justify-center items-center"
             onClick={async () => {
               if (!playlists) return;
               const randomIndex = Math.floor(Math.random() * playlists.length);
@@ -89,7 +89,7 @@ export function CurrentPlaylist({
             <ShuffleIcon size={16} />
           </div>
           <div
-            className="h-1/3 md:h-full w-full bg-neutral-800 rounded-lg flex justify-center items-center"
+            className="h-1/3 md:h-full w-full border border-neutral-700 rounded-lg flex justify-center items-center"
             onClick={async () => {
               if (isCurrent) {
                 if (nowPlaying?.is_playing) {
@@ -146,7 +146,7 @@ export function CurrentPlaylist({
             )}
           </div>
           <div
-            className={`h-1/3 md:h-full w-full bg-neutral-800 rounded-lg flex justify-center items-center bg-neutral-800 ${isFavorited ? "text-red-500" : ""}`}
+            className={`h-1/3 md:h-full w-full border border-neutral-700 rounded-lg flex justify-center items-center ${isFavorited ? "text-red-500" : ""}`}
             onClick={() => {
               setFavorites((prev) => {
                 const newFavorites = isFavorited
@@ -165,10 +165,7 @@ export function CurrentPlaylist({
               });
             }}
           >
-            <HeartIcon
-              fill={isFavorited ? "currentColor" : "none"}
-              size={16}
-            />
+            <HeartIcon fill={isFavorited ? "currentColor" : "none"} size={16} />
           </div>
         </div>
       </div>
@@ -182,12 +179,14 @@ export function CurrentPlaylist({
           </div>
         </div>
       </div>
-      <div
-        className="px-[1ch]"
-        dangerouslySetInnerHTML={{
-          __html: activePlaylist?.description || "",
-        }}
-      />
+      <div className="px-[1ch]">
+        <div
+          className="text-sm"
+          dangerouslySetInnerHTML={{
+            __html: activePlaylist?.description || "",
+          }}
+        />
+      </div>
 
       <div className="overflow-auto flex flex-col grow gap-[1px] border-t border-neutral-700 py-[0.5ch]">
         {playlistTracksMap[activePlaylist?.id || ""] === "loading" ? (
@@ -282,9 +281,9 @@ export function CurrentPlaylist({
               </div>
             </div>
           </div>
-          <div className="w-24 h-full shrink-0 py-[0.125lh]">
+          <div className="w-24 h-full shrink-0 py-[0.25lh]">
             <div
-              className="w-24 h-full bg-neutral-800 rounded-lg flex justify-center items-center"
+              className="w-24 h-full border border-neutral-700 rounded-lg flex justify-center items-center"
               onClick={async () => {
                 if (nowPlaying?.is_playing) {
                   // pause
