@@ -1,106 +1,261 @@
 import { useAtom } from "jotai";
+import { useRef, useEffect } from "react";
 import {
+  SpotifyFavoritesAtom,
   SpotifyNowPlayingAtom,
+  SpotifyPausePollingAtom,
   SpotifyPlaylistsAtom,
+  SpotifyPlaylistTracksMapAtom,
+  SpotifyUserIdAtom,
 } from "./Spotify/SpotifyAtoms";
+import type {
+  SpotifyPlaylistType,
+  SpotifyTrackType,
+} from "./Spotify/SpotifyTypes";
 import { useSearchParams } from "react-router-dom";
-import { useEffect } from "react";
-import { CurrentPlaylist } from "./CurrentPlaylist";
-import { ArrowLeftIcon, ShuffleIcon } from "lucide-react";
+import { HeartIcon, PauseIcon, PlayIcon, ShuffleIcon } from "lucide-react";
+import { fetchWithRefresh } from "./fetchWithRefresh";
 
-export function Playlist() {
-  const [nowPlaying] = useAtom(SpotifyNowPlayingAtom);
+export function Playlist({
+  activePlaylist,
+}: {
+  activePlaylist: SpotifyPlaylistType;
+}) {
+  const [nowPlaying, setNowPlaying] = useAtom(SpotifyNowPlayingAtom);
   const [playlists] = useAtom(SpotifyPlaylistsAtom);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const selectedPlaylistNumber = searchParams.get("playlist");
+  const [userId] = useAtom(SpotifyUserIdAtom);
+  const [favorites, setFavorites] = useAtom(SpotifyFavoritesAtom);
+  const [, setSearchParams] = useSearchParams();
+  const [, setPausePolling] = useAtom(SpotifyPausePollingAtom);
+  const [playlistTracksMap, setPlaylistTracksMap] = useAtom(
+    SpotifyPlaylistTracksMapAtom,
+  );
 
-  const currentHerbSunday = nowPlaying?.context?.uri
+  const currentPlaylist = nowPlaying?.context?.uri
     ? playlists?.find((p) => p.uri === nowPlaying.context.uri)
     : null;
 
-  const selectedPlaylist =
-    playlists?.find((p) => p.formattedNumber === selectedPlaylistNumber) ||
-    null;
+  const isCurrent = currentPlaylist && activePlaylist.id === currentPlaylist.id;
 
-  useEffect(() => {
-    const checkMatch = playlists?.find(
-      (p) => p.formattedNumber === selectedPlaylistNumber,
+  const isFavorited = favorites.includes(activePlaylist.formattedNumber);
+
+  async function fetchTracks(playlistId: string) {
+    const tracks = await fetchWithRefresh(
+      "/api/spotify/playlist/" + playlistId + "/tracks",
     );
-    if (!checkMatch && !currentHerbSunday && playlists) {
-      const randomPlaylist =
-        playlists && playlists[Math.floor(Math.random() * playlists.length)];
-      if (randomPlaylist) {
-        setSearchParams({ playlist: randomPlaylist.formattedNumber });
+    const _tracks = await tracks.json();
+    return _tracks;
+  }
+
+  const currentRef = useRef<SpotifyPlaylistType | null>(null);
+  useEffect(() => {
+    if (activePlaylist && activePlaylist.id !== currentRef.current?.id) {
+      if (!playlistTracksMap[activePlaylist.id]) {
+        const currentId = activePlaylist.id;
+        setPlaylistTracksMap((prev) => ({
+          ...prev,
+          [currentId]: "loading",
+        }));
+        fetchTracks(currentId).then((tracks) => {
+          setPlaylistTracksMap((prev) => ({
+            ...prev,
+            [currentId]: tracks,
+          }));
+        });
       }
     }
-  }, [selectedPlaylistNumber, currentHerbSunday, playlists]);
-
-  if (!playlists) return null;
+    currentRef.current = activePlaylist;
+  }, [activePlaylist, playlistTracksMap]);
 
   return (
-    <>
-      <div className="w-full hidden flex items-center border-r border-l border-neutral-700 justify-between">
-        {/* left side */}
-        {selectedPlaylist ? (
-          <>
-            {currentHerbSunday ? (
-              selectedPlaylist.id !== currentHerbSunday.id ? (
-                <button
-                  className="py-2 flex items-baseline px-3 bg-neutral-800 hover:bg-neutral-700 text-sm text-left"
-                  onClick={() =>
-                    setSearchParams({
-                      playlist: currentHerbSunday.formattedNumber,
-                    })
-                  }
-                >
-                  <ArrowLeftIcon size={12} className="mr-[1ch]" />
-                  Current playlist
-                </button>
-              ) : (
-                <div className="px-3 py-1 text-sm">From</div>
-              )
-            ) : (
-              <div className="px-3 py-1 text-sm">Playlist</div>
-            )}
-          </>
-        ) : (
-          currentHerbSunday && (
-            <>
-              <div className="px-3 py-1 text-sm">From</div>
-            </>
-          )
-        )}
-        {/* Right side */}
-        <button
-          className="px-3 py-2 flex items-baseline text-sm bg-neutral-800 hover:bg-neutral-700 justify-end"
-          onClick={() => {
-            if (!playlists) return;
-            const randomIndex = Math.floor(Math.random() * playlists.length);
-            const p = playlists[randomIndex];
-            setSearchParams((prev) => {
-              prev.set("playlist", p.formattedNumber);
-              return prev;
-            });
-          }}
-        >
-          Random <ShuffleIcon size={12} className="ml-[1ch]" />
-        </button>
-      </div>
-      {selectedPlaylist ? (
-        <CurrentPlaylist
-          activePlaylist={selectedPlaylist}
-          isCurrent={selectedPlaylist.id === currentHerbSunday?.id}
-          currentPlaylist={currentHerbSunday || null}
+    <div className="overflow-hidden flex flex-col grow bg-black gap-[1px]">
+      <div className="flex gap-[1px] my-[0.25lh]">
+        <img
+          src={activePlaylist.images[0].url}
+          alt={activePlaylist.name || "Playlist Cover"}
+          className="w-[240px] h-[240px] object-cover shrink-0 ml-[1ch]"
         />
-      ) : (
-        currentHerbSunday && (
-          <CurrentPlaylist
-            activePlaylist={currentHerbSunday}
-            isCurrent={true}
-            currentPlaylist={currentHerbSunday}
-          />
-        )
-      )}
-    </>
+        <div className="grow h-[240px] flex flex-col md:flex-row gap-[2px] px-[1ch]">
+          <button
+            className="h-1/3 md:h-full w-full border border-neutral-700 rounded-lg flex justify-center items-center"
+            onClick={async () => {
+              if (!playlists) return;
+              const randomIndex = Math.floor(Math.random() * playlists.length);
+              const p = playlists[randomIndex];
+              setSearchParams((prev) => {
+                prev.set("playlist", p.formattedNumber);
+                return prev;
+              });
+            }}
+          >
+            <ShuffleIcon size={16} />
+          </button>
+          <button
+            className="h-1/3 text-left md:h-full w-full border border-neutral-700 rounded-lg flex justify-center items-center"
+            onClick={async () => {
+              if (isCurrent) {
+                if (nowPlaying?.is_playing) {
+                  // pause
+                  setNowPlaying((prev) =>
+                    prev ? { ...prev, is_playing: false } : prev,
+                  );
+                  fetchWithRefresh(`/api/spotify/pause`, { method: "PUT" });
+                } else {
+                  // play
+                  setNowPlaying((prev) =>
+                    prev ? { ...prev, is_playing: true } : prev,
+                  );
+                  fetchWithRefresh(`/api/spotify/play`, { method: "PUT" });
+                }
+              } else {
+                // optimistically update UI
+                setPausePolling(true);
+                setSearchParams({ playlist: activePlaylist.formattedNumber });
+                setNowPlaying((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        context: { uri: activePlaylist.uri },
+                        item: {
+                          ...prev.item,
+                          name: "...",
+                          artists: [],
+                          album: { images: [] },
+                        },
+                        progress_ms: 0,
+                      }
+                    : prev,
+                );
+                await fetchWithRefresh("/api/spotify/play", {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    context_uri: activePlaylist.uri,
+                  }),
+                });
+                setTimeout(() => {
+                  setPausePolling(false);
+                }, 2000);
+              }
+            }}
+          >
+            {isCurrent && nowPlaying?.is_playing ? (
+              <PauseIcon size={16} />
+            ) : (
+              <PlayIcon size={16} />
+            )}
+          </button>
+          <button
+            className={`h-1/3 text-left md:h-full w-full border border-neutral-700 rounded-lg flex justify-center items-center ${isFavorited ? "text-red-500" : ""}`}
+            onClick={() => {
+              setFavorites((prev) => {
+                const newFavorites = isFavorited
+                  ? prev.filter((f) => f !== activePlaylist.formattedNumber)
+                  : [...prev, activePlaylist.formattedNumber];
+                // sync
+                fetchWithRefresh("/api/setFavorites", {
+                  headers: { "Content-Type": "application/json" },
+                  method: "POST",
+                  body: JSON.stringify({
+                    userId: userId,
+                    items: newFavorites,
+                  }),
+                });
+                return newFavorites;
+              });
+            }}
+          >
+            <HeartIcon fill={isFavorited ? "currentColor" : "none"} size={16} />
+          </button>
+        </div>
+      </div>
+      <div className="flex gap-[1px]">
+        <div className="w-full overflow-hidden flex gap-[1px]">
+          <div className="bg-black w-[5ch] text-right px-[1ch]">
+            {activePlaylist.formattedNumber}
+          </div>
+          <div className="bg-black grow px-[1ch]">
+            {activePlaylist.formattedName}
+          </div>
+        </div>
+      </div>
+      <div className="px-[1ch]">
+        <div
+          className="text-sm"
+          dangerouslySetInnerHTML={{
+            __html: activePlaylist?.description || "",
+          }}
+        />
+      </div>
+
+      <div className="overflow-auto flex flex-col grow gap-[1px] border-t border-neutral-700 py-[0.5ch]">
+        {playlistTracksMap[activePlaylist?.id || ""] === "loading" ? (
+          <div className="text-white bg-black"></div>
+        ) : (
+          playlistTracksMap[activePlaylist?.id || ""] &&
+          (
+            playlistTracksMap[activePlaylist!.id!] as {
+              track: SpotifyTrackType;
+            }[]
+          ).map((t, i) => {
+            const isActive = t.track && nowPlaying?.item?.id === t.track.id;
+            return (
+              t.track && (
+                <div
+                  key={t.track.id}
+                  className={`cursor-pointer flex gap-[1px] ${isActive ? "bg-neutral-800" : ""}`}
+                  onClick={async () => {
+                    setPausePolling(true);
+                    setSearchParams({
+                      playlist: activePlaylist.formattedNumber,
+                    });
+                    // @ts-expect-error
+                    setNowPlaying((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            context: { uri: activePlaylist.uri },
+                            item: {
+                              ...t.track,
+                            },
+                            progress_ms: 0,
+                            is_playing: true,
+                          }
+                        : prev,
+                    );
+                    await fetchWithRefresh("/api/spotify/play", {
+                      method: "PUT",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        context_uri: activePlaylist.uri,
+                        offset: { position: i },
+                      }),
+                    });
+                    setTimeout(() => {
+                      setPausePolling(false);
+                    }, 2000);
+                  }}
+                >
+                  <div className="w-[5ch] px-[1ch] text-right shrink-0">
+                    {i + 1}
+                  </div>
+                  <div className={`grow px-[1ch]`}>
+                    <div>{t.track.name}</div>
+                    <div className={`text-neutral-400`}>
+                      {t.track.artists.map((a: any) => a.name).join(", ")}
+                    </div>
+                  </div>
+                </div>
+              )
+            );
+          })
+        )}
+        <div className="grow w-full bg-black"></div>
+      </div>
+    </div>
   );
 }

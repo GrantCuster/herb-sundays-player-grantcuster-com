@@ -1,104 +1,88 @@
 import { useAtom } from "jotai";
 import {
-  SpotifyBumpRefreshAtom,
   SpotifyNowPlayingAtom,
+  SpotifyPlaylistsAtom,
 } from "./Spotify/SpotifyAtoms";
-import { FastForwardIcon, PauseIcon, PlayIcon } from "lucide-react";
-import { formatDuration } from "./Utils";
+import { useSearchParams } from "react-router-dom";
+import { PauseIcon, PlayIcon } from "lucide-react";
 import { fetchWithRefresh } from "./fetchWithRefresh";
 
 export function NowPlaying() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [playlists] = useAtom(SpotifyPlaylistsAtom);
   const [nowPlaying, setNowPlaying] = useAtom(SpotifyNowPlayingAtom);
-  const [, setBumpRefresh] = useAtom(SpotifyBumpRefreshAtom);
+  const selectedPlaylistNumber = searchParams.get("playlist");
+  const viewMode = searchParams.get("view") ?? "player";
 
-  if (!nowPlaying) {
-    return <div className="w-full px-3">Nothing is playing</div>;
-  }
-  const progress = Math.min(
-    100,
-    (nowPlaying.progress_ms / nowPlaying.item.duration_ms) * 100,
-  );
+  const currentPlaylist = nowPlaying?.context?.uri
+    ? playlists?.find((p) => p.uri === nowPlaying.context.uri)
+    : null;
+
+  const selectedPlaylist =
+    playlists?.find((p) => p.formattedNumber === selectedPlaylistNumber) ||
+    null;
+
+  const isCurrent =
+    currentPlaylist &&
+    selectedPlaylist &&
+    currentPlaylist.id === selectedPlaylist.id && viewMode !== "favs";
+
   return (
-    <div className="w-full flex flex-col px-3 pt-2 gap-3">
-      <div className="w-full flex gap-3">
-        {nowPlaying.is_playing ? (
-          <button
-            className="w-[2lh] rounded-full h-[2lh] bg-neutral-800 hover:bg-neutral-700 flex justify-center items-center shrink-0"
-            onClick={() => {
-              // optimistically update UI
-              setNowPlaying((prev) =>
-                prev ? { ...prev, is_playing: false } : prev,
-              );
-              fetchWithRefresh(`/api/spotify/pause`, { method: "PUT" });
-            }}
-          >
-            <PauseIcon size={16} />
-          </button>
-        ) : (
-          <button
-            className="w-[2lh] rounded-full h-[2lh] bg-neutral-800 hover:bg-neutral-700 flex justify-center items-center shrink-0"
-            onClick={() => {
-              // optimistically update UI
-              setNowPlaying((prev) =>
-                prev ? { ...prev, is_playing: true } : prev,
-              );
-              fetchWithRefresh(`/api/spotify/play`, { method: "PUT" });
-            }}
-          >
-            <PlayIcon size={16} />
-          </button>
-        )}
-        <div className="grow overflow-hidden">
-          <div className="truncate w-full">{nowPlaying.item.name}</div>
-          <div className="text-neutral-400 truncate w-full">
-            {nowPlaying.item.artists.map((a) => a.name).join(", ")}
+    currentPlaylist && (
+      <div
+        className="bg-neutral-800 px-[1ch] shrink-0 border-t border-neutral-700 flex"
+        onClick={() => {
+          setSearchParams({ playlist: currentPlaylist.formattedNumber });
+        }}
+      >
+        <div className="px-[1ch] grow flex overflow-hidden flex-col">
+          <div className="-ml-[1ch]">
+            <span className="text-neutral-400">{isCurrent ? "↑" : "←"}</span>{" "}
+            Playing
+          </div>
+          <div className="flex gap-[1px]">
+            <div className="w-[5ch] px-[1ch] text-right">
+              {currentPlaylist.formattedNumber}
+            </div>
+            <div className="px-[1ch] truncate grow">
+              {currentPlaylist.formattedName}
+            </div>
+          </div>
+          <div className="h-[2lh]">
+            <div className="truncate pl-[1ch]">{nowPlaying?.item?.name}</div>
+            <div className="truncate text-neutral-400 pl-[1ch]">
+              {nowPlaying?.item?.artists.map((a: any) => a.name).join(", ")}
+            </div>
           </div>
         </div>
-        {nowPlaying.item.album.images[0] && (
-          <img
-            src={nowPlaying.item.album.images[0]?.url}
-            className="h-[2lh] w-[2lh] shrink-0"
-          />
-        )}
-      </div>
-      <div className="w-full flex gap-3 items-center">
-        <div className="grow relative h-2 bg-neutral-800">
-          <div
-            className="absolute h-2 bg-neutral-400 top-0 left-0"
-            style={{ width: `${progress}%` }}
-          ></div>
+        <div className="w-24 h-full shrink-0 py-[0.25lh]">
+          <button
+            className="w-24 text-left h-full border border-neutral-600 rounded-lg flex justify-center items-center"
+            onClick={async (e) => {
+              e.stopPropagation();
+              if (nowPlaying?.is_playing) {
+                // pause
+                setNowPlaying((prev) =>
+                  prev ? { ...prev, is_playing: false } : prev,
+                );
+                fetchWithRefresh(`/api/spotify/pause`, { method: "PUT" });
+              } else {
+                // play
+                setNowPlaying((prev) =>
+                  prev ? { ...prev, is_playing: true } : prev,
+                );
+                fetchWithRefresh(`/api/spotify/play`, { method: "PUT" });
+              }
+            }}
+          >
+            {nowPlaying?.is_playing ? (
+              <PauseIcon size={16} />
+            ) : (
+              <PlayIcon size={16} />
+            )}
+          </button>
         </div>
-        <div className="shrink-0 text-neutral-400">
-          {formatDuration(nowPlaying.item.duration_ms)}
-        </div>
-        <button
-          className="shrink-0 bg-neutral-800 hover:bg-neutral-700 flex justify-center items-center w-[5ch] h-[1lh]"
-          onClick={async () => {
-            setNowPlaying((prev) =>
-              prev
-                ? {
-                    ...prev,
-                    item: {
-                      ...prev.item,
-                      name: "...",
-                      artists: [],
-                      album: { images: [] },
-                    },
-                    progress_ms: 0,
-                  }
-                : prev,
-            );
-            await fetchWithRefresh(`/api/spotify/next`, { method: "POST" });
-            setTimeout(() => {
-              setBumpRefresh((v) => v + 1);
-            }, 500);
-          }}
-        >
-          <FastForwardIcon size={16} />
-        </button>
       </div>
-    </div>
+    )
   );
 }
-
-

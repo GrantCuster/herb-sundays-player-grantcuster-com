@@ -16,9 +16,9 @@ export function Favs() {
     <div className="overflow-hidden flex flex-col grow">
       <div className="overflow-y-auto grow">
         {favs?.map((playlist) => (
-          <div
+          <button
             key={playlist.id}
-            className="flex py-[0.25lh] w-full border-b border-neutral-800"
+            className="flex text-left py-[0.25lh] w-full border-b border-neutral-800"
             onClick={() => {
               setSearchParams((prev) => {
                 prev.delete("view");
@@ -28,6 +28,12 @@ export function Favs() {
             }}
           >
             <div className="flex w-full">
+              <img
+                className="h-[2.75lh] w-[2.75lh] mr-[1ch] object-cover"
+                src={playlist.images[0].url}
+                alt=""
+              />
+
               <div className="grow">
                 <div className="flex">
                   <div className="w-[5ch] px-[1ch] shrink-0 text-right">
@@ -45,13 +51,8 @@ export function Favs() {
                   ></div>
                 </div>
               </div>
-              <img
-                className="h-[2.75lh] w-[2.75lh] mr-[1ch] object-cover"
-                src={playlist.images[0].url}
-                alt=""
-              />
             </div>
-          </div>
+          </button>
         ))}
       </div>
     </div>

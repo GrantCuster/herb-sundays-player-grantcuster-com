@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { useSpotify } from "./useSpotify";
 import { DevicePicker } from "./DevicePicker";
-import { Playlist } from "./Playlist";
+import { PlaylistWrapper } from "./PlaylistWrapper.tsx";
 import { Header } from "./Header";
 import { BrowserRouter, useSearchParams } from "react-router-dom";
 import { Favs } from "./Favs.tsx";
 import { useAtom } from "jotai";
-import { SpotifyUserIdAtom } from "./Spotify/SpotifyAtoms.tsx";
+import {
+  SpotifyDevicesAtom,
+  SpotifyUserIdAtom,
+} from "./Spotify/SpotifyAtoms.tsx";
 import { fetchWithRefresh } from "./fetchWithRefresh";
+import { NowPlaying } from "./NowPlaying.tsx";
 
 function App() {
   const [loaded, setLoaded] = useState(false);
@@ -30,11 +34,6 @@ function App() {
       .catch(() => setLoggedIn(false));
   }, []);
 
-  useEffect(() => {
-    if (loggedIn) {
-    }
-  }, [loggedIn]);
-
   return loaded ? (
     <BrowserRouter>
       <div className="w-full max-w-2xl mx-auto h-[100dvh]">
@@ -42,16 +41,19 @@ function App() {
           {loggedIn ? (
             <LoggedIn />
           ) : (
-            <div className="w-full mx-auto h-full flex flex-col justify-center items-center text-left text-neutral-400 ">
-              <div className="pt-4">
+            <div className="w-sm mx-auto h-full flex flex-col justify-center items-center text-left">
+              <div className="">
                 A simple Spotify player for listening to playlists from{" "}
                 <a
                   href="https://herbsundays.substack.com/"
-                  target="_blank"
                   className="underline"
                 >
                   Herb Sundays
                 </a>
+                .
+              </div>
+              <div className="mt-5">
+                You'll need a Spotify Premium account to use the player.
               </div>
               <a
                 className="flex items-center justify-center underline w-full mx-auto my-5 py-4 rounded-full border border-neutral-400"
@@ -59,6 +61,21 @@ function App() {
               >
                 <div>Login with Spotify</div>
               </a>
+              <div className="w-full">
+                A personal project by{" "}
+                <a href="https://grantcuster.com" className="underline">
+                  Grant Custer
+                </a>
+                .<br />
+                View the{" "}
+                <a
+                  className="underline"
+                  href="https://github.com/GrantCuster/herb-sundays-player-grantcuster-com"
+                >
+                  code on GitHub
+                </a>
+                .
+              </div>
             </div>
           )}
         </div>
@@ -70,14 +87,29 @@ function App() {
 function LoggedIn() {
   useSpotify();
   const [searchParams] = useSearchParams();
+  const [devices] = useAtom(SpotifyDevicesAtom);
   const viewMode = searchParams.get("view") ?? "player";
 
   return (
-    <div className="h-full w-full lg:border mx-auto flex flex-col overflow-hidden">
+    <div className="h-full w-full mx-auto flex flex-col overflow-hidden">
       <Header />
-      {viewMode === "player" && <Playlist />}
-      {viewMode === "favs" && <Favs />}
-      <DevicePicker />
+      {devices.length === 0 ? (
+        <div className="flex h-full jusify-center items-center">
+          <div className="max-w-lg mx-auto p-2 text-center text-white">
+            No active Spotify devices found. Please open Spotify on one of your
+            devices.
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-col grow overflow-hidden">
+            {viewMode === "player" && <PlaylistWrapper />}
+            {viewMode === "favs" && <Favs />}
+          </div>
+          <NowPlaying />
+          <DevicePicker />
+        </>
+      )}
     </div>
   );
 }
