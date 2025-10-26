@@ -8,6 +8,7 @@ import { Favs } from "./Favs.tsx";
 import { useAtom } from "jotai";
 import {
   SpotifyDevicesAtom,
+  SpotifyDevicesLoadingAtom,
   SpotifyUserIdAtom,
 } from "./Spotify/SpotifyAtoms.tsx";
 import { fetchWithRefresh } from "./fetchWithRefresh";
@@ -87,13 +88,14 @@ function App() {
 function LoggedIn() {
   useSpotify();
   const [searchParams] = useSearchParams();
+  const [devicesLoading] = useAtom(SpotifyDevicesLoadingAtom);
   const [devices] = useAtom(SpotifyDevicesAtom);
   const viewMode = searchParams.get("view") ?? "player";
 
   return (
     <div className="h-full w-full mx-auto flex flex-col overflow-hidden">
       <Header />
-      {devices.length === 0 ? (
+      {!devicesLoading && devices.length === 0 ? (
         <div className="flex h-full jusify-center items-center">
           <div className="max-w-lg mx-auto p-2 text-center text-white">
             No active Spotify devices found. Please open Spotify on one of your
