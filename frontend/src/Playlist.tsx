@@ -77,7 +77,7 @@ export function Playlist({
         />
         <div className="grow h-[240px] flex flex-col md:flex-row gap-[2px] px-[1ch]">
           <button
-            className="h-1/3 md:h-full w-full border border-neutral-700 rounded-lg flex justify-center items-center"
+            className="h-1/3 bg-neutra md:h-full w-full border border-neutral-700 rounded-lg flex justify-center items-center"
             onClick={async () => {
               if (!playlists) return;
               const randomIndex = Math.floor(Math.random() * playlists.length);

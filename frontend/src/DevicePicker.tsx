@@ -15,7 +15,7 @@ export function DevicePicker() {
 
   if (devices.length === 1) {
     return (
-      <div className="text-neutral-400 shrink-0 border-t border-neutral-700 py-[0.25lh] w-full px-[1ch]">
+      <div className="text-neutral-400 shrink-0 border-t border-neutral-700 pt-[0.25lh] pb-[1lh] w-full px-[1ch]">
         Connected to {activeDevice?.name}
       </div>
     );
