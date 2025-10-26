@@ -38,7 +38,7 @@ function App() {
   return loaded ? (
     <BrowserRouter>
       <div className="w-full max-w-2xl mx-auto h-[100dvh]">
-        <div className="w-full max-w-2xl -mx-[2px] border-l border-r border-neutral-700 h-full overflow-hidden flex flex-col">
+        <div className="w-full max-w-2xl md:border-l md:border-r border-neutral-700 h-full overflow-hidden flex flex-col">
           {loggedIn ? (
             <LoggedIn />
           ) : (
