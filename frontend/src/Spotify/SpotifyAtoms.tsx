@@ -6,6 +6,7 @@ import type {
   SpotifyTrackType,
 } from "./SpotifyTypes";
 
+export const PreviewModeAtom = atom<boolean>(false);
 export const SpotifyUserIdAtom = atom<string | null>(null);
 export const SpotifyFavoritesAtom = atom<string[]>([]);
 export const SpotifyNowPlayingAtom = atom<SpotifyNowPlayingType>(null);

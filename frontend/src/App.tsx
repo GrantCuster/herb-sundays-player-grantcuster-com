@@ -53,8 +53,11 @@ function App() {
                 </a>
                 .
               </div>
-              <div className="mt-5">
-                You'll need a Spotify Premium account to use the player.
+              <div className="mt-5 text-yellow-500">
+                To use it you need a Spotify premium account and for me to add
+                your list to the approved accounts. If you message me at
+                grantcuster @ gmail with your Spotify email and I still have
+                room in the approved list I'll add you.
               </div>
               <a
                 className="flex items-center justify-center underline w-full mx-auto my-5 py-4 rounded-full border border-neutral-400"
@@ -95,23 +98,12 @@ function LoggedIn() {
   return (
     <div className="h-full w-full mx-auto flex flex-col overflow-hidden">
       <Header />
-      {!devicesLoading && devices.length === 0 ? (
-        <div className="flex h-full jusify-center items-center">
-          <div className="max-w-lg mx-auto p-2 text-center text-white">
-            No active Spotify devices found. Please open Spotify on one of your
-            devices.
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className="flex flex-col grow overflow-hidden">
-            {viewMode === "player" && <PlaylistWrapper />}
-            {viewMode === "favs" && <Favs />}
-          </div>
-          <NowPlaying />
-          <DevicePicker />
-        </>
-      )}
+      <div className="flex flex-col grow overflow-hidden">
+        {viewMode === "player" && <PlaylistWrapper />}
+        {viewMode === "favs" && <Favs />}
+      </div>
+      <NowPlaying />
+      <DevicePicker />
     </div>
   );
 }

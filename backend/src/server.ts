@@ -91,7 +91,7 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: isProduction
-      ? "https://herb-sunday-dot-computing-experiments.uc.r.appspot.com"
+      ? "https://herb-sunday-player.grantcuster.com"
       : "http://127.0.0.1:4000",
     credentials: true,
   }),
@@ -191,7 +191,7 @@ app.get("/api/auth/spotify/callback", async (req, res) => {
     res.redirect("http://127.0.0.1:4000" /* FRONTEND_URL */);
   } else {
     res.redirect(
-      "https://herb-sunday-dot-computing-experiments.uc.r.appspot.com",
+      "https://herb-sunday-player.grantcuster.com"
     );
   }
 });
@@ -268,8 +268,18 @@ app.get("/api/spotify/me", async (req, res) => {
     return res.status(401).json({ error: "Access token expired" });
   }
 
-  const json = await r.json();
-  res.json(json);
+  if (!r.ok) {
+    const text = await r.text();
+    return res.status(r.status).json({ error: "Spotify API error", detail: text });
+  }
+
+  try {
+    const json = await r.json();
+    res.json(json);
+  } catch (err) {
+    const text = await r.text();
+    return res.status(500).json({ error: "Invalid JSON response from Spotify", detail: text });
+  }
 });
 
 app.get("/api/spotify/herb_sundays", async (req, res) => {
@@ -286,21 +296,31 @@ app.get("/api/spotify/herb_sundays", async (req, res) => {
       },
     );
 
-    const data = (await r.json()) as {
-      items: any[];
-      offset: number;
-      limit: number;
-      total: number;
-    };
-    const total = data.total || 0;
-    playlists.push(...data.items);
-    if (data.offset + data.limit < total) {
-      await fetchAllPlaylists(data.offset + data.limit);
-    } else {
-      if (r.status === 204) {
-        return res.status(204).end(); // nothing playing
+    if (!r.ok) {
+      const text = await r.text();
+      return res.status(r.status).json({ error: "Spotify API error", detail: text });
+    }
+
+    try {
+      const data = (await r.json()) as {
+        items: any[];
+        offset: number;
+        limit: number;
+        total: number;
+      };
+      const total = data.total || 0;
+      playlists.push(...data.items);
+      if (data.offset + data.limit < total) {
+        await fetchAllPlaylists(data.offset + data.limit);
+      } else {
+        if (r.status === 204) {
+          return res.status(204).end(); // nothing playing
+        }
+        res.status(r.status).json(playlists);
       }
-      res.status(r.status).json(playlists);
+    } catch (err) {
+      const text = await r.text();
+      return res.status(500).json({ error: "Invalid JSON response from Spotify", detail: text });
     }
   }
   await fetchAllPlaylists();
@@ -321,8 +341,19 @@ app.get("/api/spotify/me/player/currently-playing", async (req, res) => {
   if (r.status === 204) {
     return res.status(204).end(); // nothing playing
   }
-  const json = await r.json();
-  res.status(r.status).json(json);
+
+  if (!r.ok) {
+    const text = await r.text();
+    return res.status(r.status).json({ error: "Spotify API error", detail: text });
+  }
+
+  try {
+    const json = await r.json();
+    res.status(r.status).json(json);
+  } catch (err) {
+    const text = await r.text();
+    return res.status(500).json({ error: "Invalid JSON response from Spotify", detail: text });
+  }
 });
 
 // Get tracks from a playlist
@@ -344,21 +375,31 @@ app.get("/api/spotify/playlist/:id/tracks", async (req, res) => {
       },
     );
 
-    const data = (await r.json()) as {
-      items: any[];
-      offset: number;
-      limit: number;
-      total: number;
-    };
-    const total = data.total || 0;
-    tracks.push(...data.items);
-    if (data.offset + data.limit < total) {
-      await fetchAllTracks(data.offset + data.limit);
-    } else {
-      if (r.status === 204) {
-        return res.status(204).end(); // nothing playing
+    if (!r.ok) {
+      const text = await r.text();
+      return res.status(r.status).json({ error: "Spotify API error", detail: text });
+    }
+
+    try {
+      const data = (await r.json()) as {
+        items: any[];
+        offset: number;
+        limit: number;
+        total: number;
+      };
+      const total = data.total || 0;
+      tracks.push(...data.items);
+      if (data.offset + data.limit < total) {
+        await fetchAllTracks(data.offset + data.limit);
+      } else {
+        if (r.status === 204) {
+          return res.status(204).end(); // nothing playing
+        }
+        res.status(r.status).json(tracks);
       }
-      res.status(r.status).json(tracks);
+    } catch (err) {
+      const text = await r.text();
+      return res.status(500).json({ error: "Invalid JSON response from Spotify", detail: text });
     }
   }
   await fetchAllTracks();
@@ -469,8 +510,19 @@ app.get("/api/spotify/devices", async (req, res) => {
   const r = await fetch("https://api.spotify.com/v1/me/player/devices", {
     headers: { Authorization: `Bearer ${access_token}` },
   });
-  const json = await r.json();
-  res.status(r.status).json(json);
+
+  if (!r.ok) {
+    const text = await r.text();
+    return res.status(r.status).json({ error: "Spotify API error", detail: text });
+  }
+
+  try {
+    const json = await r.json();
+    res.status(r.status).json(json);
+  } catch (err) {
+    const text = await r.text();
+    return res.status(500).json({ error: "Invalid JSON response from Spotify", detail: text });
+  }
 });
 
 // Transfer playback to a device (optionally start playing immediately)
